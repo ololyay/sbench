@@ -107,8 +107,8 @@ func sumTime() int32 {
 func showProgress() {
   for {
     time.Sleep(5 * time.Second)
-    if failedRequestsCount() + len(response_times) < *size {
-      percent := int32((float32(failedRequestsCount() + len(response_times)) / float32(*size)) * 100.0)
+    if requests_count < *size {
+      percent := int32((float32(requests_count) / float32(*size)) * 100.0)
       fmt.Printf("%d%% done...\n", percent)
     } else {
       return

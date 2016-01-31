@@ -13,19 +13,27 @@ Flags:
       --content-type=CONTENT-TYPE
                       HTTP content type
       --body=BODY     Body of HTTP request
+      --timeout=10    Timeout for requests (sec)
       --version       Show application version.
 
 # sbench -u http://example.com -n 50 -t 2
-Starting 2 threads to make 50 GET requests to http://example.com
-3.5345678 requests/sec
-282.92 ms mean response time
+Starting test http://example.com
+Requests: 50
+Threads: 2
+Timeout: 10 sec
+
+58% done...
+
+
+3.1080997 requests/sec
+321.74 ms mean response time
 Percentage of requests processed within a certain time:
-25%: 277 ms
-50%: 281 ms
-75%: 285 ms
-90%: 292 ms
-95%: 307 ms
-98%: 334 ms
+25%: 274 ms
+50%: 278 ms
+75%: 283 ms
+90%: 290 ms
+95%: 305 ms
+98%: 1363 ms
 50 requests total.
 0 requests failed.
 ```

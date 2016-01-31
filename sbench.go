@@ -23,6 +23,7 @@ var (
   threads_count = kingpin.Flag("threads", "Number of threads").Default("1").Short('t').Int()
   http_content_type = kingpin.Flag("content-type", "HTTP content type").Default("").String()
   http_body = kingpin.Flag("body", "Body of HTTP request").Default("").String()
+  timeout = kingpin.Flag("timeout", "Timeout for requests (sec)").Default("10").Int()
 )
 
 
@@ -35,11 +36,14 @@ func main() {
   }
   requests_count = 0
   go showProgress()
-  fmt.Printf("Starting %v threads to make %v %v requests to %s\n", *threads_count, *size, *method, *url)
+  fmt.Printf("Starting test %s\n", *url)
+  fmt.Printf("Requests: %v\n", *size)
+  fmt.Printf("Threads: %v\n", *threads_count)
+  fmt.Printf("Timeout: %v sec\n\n", *timeout)
   for i := 0; i < *threads_count; i++ {
     go RequestsThread(*method, *url)
   }
-  time.Sleep(time.Second)
+  time.Sleep(100 * time.Millisecond)
   wg.Wait()
   ShowResults()
 }
@@ -59,7 +63,9 @@ func MakeRequest(method string, host string) {
   if *http_content_type != "" {
     req.Header.Add("Content-Type", *http_content_type)
   }
-  client := &http.Client{}
+  client := &http.Client{
+    Timeout: time.Duration(*timeout) * time.Second,
+  }
   resp, _ := client.Do(req)
   mutex.Lock()
   if resp != nil {
@@ -75,7 +81,7 @@ func ShowResults() {
     os.Exit(1)
     return
   }
-  fmt.Printf("%g requests/sec\n", meanRequestsPerSec())
+  fmt.Printf("\n\n%g requests/sec\n", meanRequestsPerSec())
   fmt.Printf("%g ms mean response time\n", meanResponseTime())
   sort.Ints(response_times)
   percentiles := []float32{0.25, 0.5, 0.75, 0.90, 0.95, 0.98}

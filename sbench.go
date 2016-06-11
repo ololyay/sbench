@@ -41,23 +41,39 @@ func main() {
   fmt.Printf("Threads: %v\n", *threads_count)
   fmt.Printf("Timeout: %v sec\n\n", *timeout)
   for i := 0; i < *threads_count; i++ {
+    wg.Add(1)
     go RequestsThread(*method, *url)
   }
-  time.Sleep(100 * time.Millisecond)
   wg.Wait()
   ShowResults()
 }
 
 func RequestsThread(method string, host string) {
-  wg.Add(1)
-  for requests_count < *size {
-    requests_count++
-    MakeRequest(method, host)
+  var thread_response_times []int
+
+  for ; isNeedRequest(); {
+    MakeRequest(method, host, &thread_response_times)
   }
+
+  mutex.Lock()
+  response_times = append(response_times, thread_response_times...)
+  mutex.Unlock()
+
   wg.Done()
 }
 
-func MakeRequest(method string, host string) {
+func isNeedRequest() bool {
+  mutex.Lock()
+  defer mutex.Unlock()
+  if (requests_count < *size) {
+    requests_count++
+    return true
+  } else {
+    return false
+  }
+}
+
+func MakeRequest(method string, host string, thread_response_times *[]int) {
   start_time := time.Now()
   req, _ := http.NewRequest(method, host, strings.NewReader(*http_body))
   if *http_content_type != "" {
@@ -67,12 +83,10 @@ func MakeRequest(method string, host string) {
     Timeout: time.Duration(*timeout) * time.Second,
   }
   resp, _ := client.Do(req)
-  mutex.Lock()
   if resp != nil {
     defer resp.Body.Close()
-    response_times = append(response_times, int(time.Since(start_time).Nanoseconds() / 1000000))
+    *thread_response_times = append(*thread_response_times, int(time.Since(start_time).Nanoseconds() / 1000000))
   }
-  mutex.Unlock()
 }
 
 func ShowResults() {
@@ -81,8 +95,8 @@ func ShowResults() {
     os.Exit(1)
     return
   }
-  fmt.Printf("\n\n%g requests/sec\n", meanRequestsPerSec())
-  fmt.Printf("%g ms mean response time\n", meanResponseTime())
+  fmt.Printf("\n\n%.2f requests/sec\n", meanRequestsPerSec())
+  fmt.Printf("%.0f ms mean response time\n", meanResponseTime())
   sort.Ints(response_times)
   percentiles := []float32{0.25, 0.5, 0.75, 0.90, 0.95, 0.98}
   fmt.Printf("Percentage of requests processed within a certain time:\n")
@@ -99,7 +113,7 @@ func meanResponseTime() float32 {
 }
 
 func meanRequestsPerSec() float32 {
-  return 1000.0 / meanResponseTime()
+  return float32(*threads_count) * 1000.0 * float32(len(response_times)) / float32(sumTime())
 }
 
 func sumTime() int32 {

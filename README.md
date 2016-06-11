@@ -16,26 +16,31 @@ Flags:
       --timeout=10    Timeout for requests (sec)
       --version       Show application version.
 
-# sbench -u http://example.com -n 50 -t 2
+# sbench -n 5000 -t 50 -u http://example.com
 Starting test http://example.com
-Requests: 50
-Threads: 2
+Requests: 5000
+Threads: 50
 Timeout: 10 sec
 
-58% done...
+18% done...
+35% done...
+52% done...
+69% done...
+86% done...
 
 
-3.1080997 requests/sec
-321.74 ms mean response time
+174.17 requests/sec
+287 ms mean response time
 Percentage of requests processed within a certain time:
-25%: 274 ms
-50%: 278 ms
-75%: 283 ms
-90%: 290 ms
-95%: 305 ms
-98%: 1363 ms
-50 requests total.
+25%: 118 ms
+50%: 123 ms
+75%: 138 ms
+90%: 1250 ms
+95%: 1275 ms
+98%: 1296 ms
+5000 requests total.
 0 requests failed.
+
 ```
 
 ---
@@ -43,7 +48,7 @@ Percentage of requests processed within a certain time:
 
 Make 10 POST requests with data:
 ```
-sbench -u http://localhost:8080 -n 10 --method=POST --content-type="application/x-www-form-urlencoded" --body="key=value"
+sbench -u http://example.com -n 10 --method=POST --content-type="application/x-www-form-urlencoded" --body="key=value"
 ```
 
 Make 50 GET requests in 2 parallel threads:
